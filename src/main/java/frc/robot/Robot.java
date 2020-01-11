@@ -32,6 +32,7 @@ public class Robot extends TimedRobot {
   private DifferentialDrive m_myRobot;
   private SpeedControllerGroup leftSideSpeedControllerGroup;
   private SpeedControllerGroup rightSideSpeedControllerGroup;
+  private WPI_TalonSRX shooter = new WPI_TalonSRX(4);
 
   private Solenoid Solenoid_1;
   private Solenoid Solenoid_2;
@@ -71,6 +72,7 @@ public class Robot extends TimedRobot {
 
     leftSideSpeedControllerGroup = new SpeedControllerGroup(new WPI_TalonSRX(0), new WPI_TalonSRX(3));
     rightSideSpeedControllerGroup = new SpeedControllerGroup(new WPI_TalonSRX(1), new WPI_TalonSRX(2));
+   
     m_myRobot = new DifferentialDrive(leftSideSpeedControllerGroup, rightSideSpeedControllerGroup);
 
     topSolonoids = new Solenoid[] { Solenoid_1, Solenoid_2, Solenoid_3 };
@@ -114,6 +116,13 @@ public class Robot extends TimedRobot {
 
   @Override
   public void testPeriodic() {
+
+    double[] movementList = adjustJoystickInput(m_stick.getY(), m_stick.getX(), m_stick.getThrottle());
+    
+    m_myRobot.arcadeDrive(movementList[0], movementList[1]);
+    System.out.println(movementList[0]);
+    System.out.println(movementList[1]);
+
     double lSpeed = 0;
     double rSpeed = 0;
     double Kp = 0.025f;
@@ -127,15 +136,23 @@ public class Robot extends TimedRobot {
     
     double tx = targetx.getDouble(0);
     double tv = targetv.getDouble(0);
-    System.out.println(tx);
+    //System.out.println(tx);
     double steering_adjust = 0.0f;
     double error = tx;
 
+    shooter.set(0);
+    if (m_stick.getRawButton(4) == true) {
+      shooter.set(-1);
+      System.out.println(shooter.get());
+    }
+    else {
+      shooter.set(0);
+    }
 
     double error_sign = error/Math.abs(error);
     if (error_sign != error/Math.abs(error)) {
-      error = 0;
-    }
+        error = 0;
+      }
     // Decide on direction
     if(m_stick.getRawButton(5) == true){
         direction = 1;
@@ -143,9 +160,9 @@ public class Robot extends TimedRobot {
     else if(m_stick.getRawButton(6) == true){
         direction = -1;
       }
-    System.out.println(direction);
+    //System.out.println(direction);
 
-    if(m_stick.getRawButton(1) == true) {
+    /*if(m_stick.getRawButton(1) == true) {
       // No target, default mode
         if(tv == 0){
             steering_adjust = 0.5*direction;
@@ -178,7 +195,7 @@ public class Robot extends TimedRobot {
     }
     else {
       m_myRobot.tankDrive(0,0);
-    }
+    }*/
   }
 
   public void fireCannon(Solenoid solonoidToFire, Joystick joystick, int secondaryButton) {
